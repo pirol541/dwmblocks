@@ -8,7 +8,6 @@
 #define CMDLENGTH		50
 
 typedef struct {
-	char* icon;
 	char* command;
 	unsigned int interval;
 	unsigned int signal;
@@ -27,7 +26,7 @@ void statusloop();
 void termhandler(int signum);
 
 
-#include "blocks.h"
+#include "config.h"
 
 static Display *dpy;
 static int screen;
@@ -48,18 +47,14 @@ void replace(char *str, char old, char new)
 //opens process *cmd and stores output in *output
 void getcmd(const Block *block, char *output)
 {
-	strcpy(output, block->icon);
 	char *cmd = block->command;
 	FILE *cmdf = popen(cmd,"r");
 	if (!cmdf)
 		return;
-	char c;
-	int i = strlen(block->icon);
-	fgets(output+i, CMDLENGTH-i, cmdf);
-	i = strlen(output);
-	if (delim != '\0' && --i)
-		output[i++] = delim;
-	output[i++] = '\0';
+	fgets(output, CMDLENGTH, cmdf);
+	if (strlen(output) != 0)
+		strcat(output, delim);
+	printf("%s\n",output);
 	pclose(cmdf);
 }
 
@@ -103,7 +98,7 @@ int getstatus(char *str, char *last)
 	str[0] = '\0';
 	for(int i = 0; i < LENGTH(blocks); i++)
 		strcat(str, statusbar[i]);
-	str[strlen(str)-1] = '\0';
+	str[strlen(str)-strlen(delim)] = '\0';
 	return strcmp(str, last);//0 if they are the same
 }
 
@@ -164,12 +159,11 @@ int main(int argc, char** argv)
 {
 	for(int i = 0; i < argc; i++)
 	{	
-		if (!strcmp("-d",argv[i]))
-			delim = argv[++i][0];
-		else if(!strcmp("-p",argv[i]))
+		if(!strcmp("-p",argv[i]))
 			writestatus = pstdout;
 	}
 	signal(SIGTERM, termhandler);
 	signal(SIGINT, termhandler);
 	statusloop();
 }
+
