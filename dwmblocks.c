@@ -51,10 +51,8 @@ void getcmd(const Block *block, char *output)
 	if (!cmdf)
 		return;
 	fgets(output, CMDLENGTH, cmdf);
-	printf("%i\n",strlen(output));
 	if (strlen(output) != 0)
 		strcat(output, delim);
-	printf("%s\n",output);
 	pclose(cmdf);
 }
 
