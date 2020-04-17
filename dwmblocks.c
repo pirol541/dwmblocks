@@ -4,7 +4,7 @@
 #include<unistd.h>
 #include<signal.h>
 #include<X11/Xlib.h>
-#define LENGTH(X)               (sizeof(X) / sizeof (X[0]))
+#define LENGTH(X)       (sizeof(X) / sizeof (X[0]))
 #define CMDLENGTH		50
 
 typedef struct {
@@ -15,11 +15,9 @@ typedef struct {
 void sighandler(int num);
 void replace(char *str, char old, char new);
 void getcmds(int time);
-#ifndef __OpenBSD__
 void getsigcmds(int signal);
 void setupsignals();
 void sighandler(int signum);
-#endif
 int getstatus(char *str, char *last);
 void setroot();
 void statusloop();
@@ -47,11 +45,13 @@ void replace(char *str, char old, char new)
 //opens process *cmd and stores output in *output
 void getcmd(const Block *block, char *output)
 {
+	output[0] = '\0';
 	char *cmd = block->command;
 	FILE *cmdf = popen(cmd,"r");
 	if (!cmdf)
 		return;
 	fgets(output, CMDLENGTH, cmdf);
+	printf("%i\n",strlen(output));
 	if (strlen(output) != 0)
 		strcat(output, delim);
 	printf("%s\n",output);
@@ -69,7 +69,6 @@ void getcmds(int time)
 	}
 }
 
-#ifndef __OpenBSD__
 void getsigcmds(int signal)
 {
 	const Block *current;
@@ -90,7 +89,6 @@ void setupsignals()
 	}
 
 }
-#endif
 
 int getstatus(char *str, char *last)
 {
@@ -127,9 +125,7 @@ void pstdout()
 
 void statusloop()
 {
-#ifndef __OpenBSD__
 	setupsignals();
-#endif
 	int i = 0;
 	getcmds(-1);
 	while(statusContinue)
@@ -141,13 +137,11 @@ void statusloop()
 	}
 }
 
-#ifndef __OpenBSD__
 void sighandler(int signum)
 {
 	getsigcmds(signum-SIGRTMIN);
 	writestatus();
 }
-#endif
 
 void termhandler(int signum)
 {
